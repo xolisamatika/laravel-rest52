@@ -12,7 +12,12 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'phone',
+        'status'
     ];
 
     /**
@@ -21,11 +26,27 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     public function events()
     {
-        return $this->belongsToMany('App\Event');
+        return $this->hasMany('App\Event', 'admin_id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany('App\Comment', 'from_user');
+    }
+
+    public function likedEvent()
+    {
+        return $this->morphedByMany('App\Event', 'likeable')->whereDeletedAt(null);
+    }
+
+    public function likedComment()
+    {
+        return $this->morphedByMany('App\Comment', 'likeable')->whereDeletedAt(null);
     }
 }

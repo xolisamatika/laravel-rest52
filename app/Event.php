@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use JWTAuth;
 
 class Event extends Model
 {
@@ -12,11 +13,30 @@ class Event extends Model
      * @var array
      */
     protected $fillable = [
-        'time', 'title', 'description',
+        'time', 'title', 'description', 'admin_id', 'venue', 'price'
     ];
 
-    public function users()
+    public function user()
     {
-        return $this->belongsToMany('App\User');
+        return $this->belongsTo('App\User', 'admin_id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany('App\Comment', 'item_id');
+    }
+
+    public function likes()
+    {
+        return $this->morphToMany('App\User', 'likeable')->whereDeletedAt(null);
+    }
+
+    public function getIsLikedAttribute()
+    {
+        if (!$user = JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['msg' => 'User not authenticated'], 404);
+        }
+        $like = $this->likes()->whereUserId($user->id)->first();
+        return (!is_null($like)) ? true : false;
     }
 }

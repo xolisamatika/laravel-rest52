@@ -21,16 +21,23 @@ class AuthController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'name' => 'required',
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'phone' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:5'
         ]);
 
-        $name = $request->input('name');
+        $first_name = $request->input('first_name');
+        $last_name = $request->input('last_name');
+        $phone = $request->input('phone');
         $email = $request->input('email');
         $password = $request->input('password');
+
         $user = new User([
-            'name' => $name,
+            'last_name' => $last_name,
+            'last_name' => $last_name,
+            'phone' => $phone,
             'email' => $email,
             'password' => bcrypt($password)
         ]);
@@ -67,9 +74,9 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
-                if (! $token = JWTAuth::attempt($credentials)) {
-                    return response()->json(['msg' => 'Invalid credentials'], 401);
-                }
+            if (! $token = JWTAuth::attempt($credentials)) {
+                return response()->json(['msg' => 'Invalid credentials'], 401);
+            }
         } catch (JWTException $e) {
             return response()->json(['msg' => 'Could not create token'], 500);
         }

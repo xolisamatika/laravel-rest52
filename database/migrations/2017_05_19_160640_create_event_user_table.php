@@ -27,6 +27,6 @@ class CreateEventUserTable extends Migration
      */
     public function down()
     {
-       Schema::drop('event_user');
+        Schema::drop('event_user');
     }
 }

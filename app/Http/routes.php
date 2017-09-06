@@ -10,8 +10,16 @@
 | and give it the controller to call when that URI is requested.
 |
 */
+Route::get('/', function () {
+    return view('welcome');
+});
 
-Route::group(['prefix' => 'api/v1'], function () {
+
+// Route::auth();
+Route::get('/home', 'FrontController@index');
+Route::get('/events', 'FrontController@events');
+
+Route::group(['prefix' => 'api/v1','middleware' => 'cors'], function () {
     Route::resource('event', 'EventController', [
         'except' => ['edit', 'create']
     ]);
@@ -20,10 +28,15 @@ Route::group(['prefix' => 'api/v1'], function () {
         'only' => ['store', 'destroy']
     ]);
 
-    Route::post('user', ['uses' => 'AuthController@store'
+    Route::post('user', ['as' => 'user.save', 'uses' => 'AuthController@store'
     ]);
 
-    Route::post('user/signin', ['uses' => 'AuthController@signin'
+    Route::post('user/signin', ['as' => 'user.signin', 'uses' => 'AuthController@signin'
     ]);
 
+    Route::get('event/like/{id}', ['as' => 'event.like', 'uses' => 'LikeController@likeEvent'
+    ]);
+
+    Route::get('comment/like/{id}', ['as' => 'comment.like', 'uses' => 'LikeController@likeComment'
+    ]);
 });

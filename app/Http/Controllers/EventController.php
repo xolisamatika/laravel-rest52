@@ -32,7 +32,6 @@ class EventController extends Controller
             ];
         }
 
-
         $response = [
             'msg' => 'List of all Events',
             'events' => $events
@@ -53,6 +52,7 @@ class EventController extends Controller
         $this->validate($request, [
             'title' => 'required',
             'description' => 'required',
+            'venue' => 'required',
             'time' => 'required|date_format:YmdHie'
         ]);
 
@@ -62,17 +62,18 @@ class EventController extends Controller
 
         $title = $request->input('title');
         $description = $request->input('description');
+        $venue = $request->input('venue');
         $time = $request->input('time');
         $user_id = $user->id;
 
         $event = new Event([
             'title' => $title,
             'description' => $description,
-            'time' => Carbon::createFromFormat('YmdHie', $time)
+            'time' => Carbon::createFromFormat('YmdHie', $time),
+            'venue' => $venue
         ]);
 
-        if ($event->save()) {
-            $event->users()->attach($user_id);
+        if ($user->events()->save($event)) {
             $event->view_event = [
                 'href' => 'api/v1/event/' . $event->id,
                 'method' => 'GET'
@@ -95,7 +96,7 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        $event = Event::with('users')->where('id', $id)->firstOrFail();
+        $event = Event::with('comments')->where('id', $id)->firstOrFail();
         $event->view_event = [
             'href' => 'api/v1/event/' . $event->id,
             'method' => 'GET'
@@ -121,21 +122,23 @@ class EventController extends Controller
         $this->validate($request, [
             'title' => 'required',
             'description' => 'required',
+            'venue' => 'required',
             'time' => 'required|date_format:YmdHie'
         ]);
 
         if (!$user = JWTAuth::parseToken()->authenticate()) {
-            return response()->json(['msg' => 'User not found'], 404);
+            return response()->json(['msg' => 'User not authenticated'], 404);
         }
         $title = $request->input('title');
         $description = $request->input('description');
+        $venue = $request->input('venue');
+        $price = $request->input('price');
         $time = $request->input('time');
-        $user_id = $user->id;
 
-        $event = Event::with('users')->findOrfail($id);
-        if (!$event->users()->where('users.id', $user_id)->first()) {
+        $event = Event::with('comments')->findOrfail($id);
+        if ($event->admin_id != $user->id) {
             return response()->json([
-                            'msg' => 'user not registered fot event, update not successfull',
+                            'msg' => 'Only the admin can delete the event, deletion not successfull',
                             401
                         ]);
         }
@@ -143,6 +146,8 @@ class EventController extends Controller
         $event->time = Carbon::createFromFormat('YmdHie', $time);
         $event->title = $title;
         $event->description = $description;
+        $event->venue = $venue;
+        $event->price = $price;
 
         if (!$event->update()) {
              return response()->json([
@@ -176,17 +181,17 @@ class EventController extends Controller
         if (!$user = JWTAuth::parseToken()->authenticate()) {
             return response()->json(['msg' => 'User not found'], 404);
         }
-        if (!$event->users()->where('users.id', $user->id)->first()) {
+        if ($event->admin_id != $user->id) {
             return response()->json([
-                            'msg' => 'user not registered fot event, deletion not successfull',
+                            'msg' => 'Only the admin can delete the event, deletion not successfull',
                             401
                         ]);
         }
-        $users = $event->users;
-        $event->users->detach();
-        if (!$event->delete) {
-            foreach ($users as $user) {
-                $event->users()->attach($user);
+        $comments = $event->comments;
+        $event->comments()->detach();
+        if (!$event->delete()) {
+            foreach ($comments as $comment) {
+                $event->comments()->attach($comment);
             }
             return response()->json(['msg' => 'deletion failed'], 404);
         }
