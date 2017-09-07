@@ -53,6 +53,7 @@ class EventController extends Controller
             'title' => 'required',
             'description' => 'required',
             'venue' => 'required',
+            'price' => 'numeric',
             'time' => 'required|date_format:YmdHie'
         ]);
 
@@ -63,6 +64,7 @@ class EventController extends Controller
         $title = $request->input('title');
         $description = $request->input('description');
         $venue = $request->input('venue');
+        $price = $request->input('price');
         $time = $request->input('time');
         $user_id = $user->id;
 
@@ -70,7 +72,8 @@ class EventController extends Controller
             'title' => $title,
             'description' => $description,
             'time' => Carbon::createFromFormat('YmdHie', $time),
-            'venue' => $venue
+            'venue' => $venue,
+            'price' => $price
         ]);
 
         if ($user->events()->save($event)) {
@@ -123,6 +126,7 @@ class EventController extends Controller
             'title' => 'required',
             'description' => 'required',
             'venue' => 'required',
+            'price' => 'numeric',
             'time' => 'required|date_format:YmdHie'
         ]);
 
