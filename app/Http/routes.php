@@ -39,4 +39,8 @@ Route::group(['prefix' => 'api/v1','middleware' => 'cors'], function () {
 
     Route::get('comment/like/{id}', ['as' => 'comment.like', 'uses' => 'LikeController@likeComment'
     ]);
+
+    Route::resource('event/comment', 'CommentController', [
+        'only' => ['store', 'destroy']
+    ]);
 });

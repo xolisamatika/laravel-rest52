@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
-use App\Event;
+use App\Comment;
 use Carbon\Carbon;
 use JWTAuth;
 
@@ -58,15 +58,24 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        $input['from_user'] = $request->user()->id;
-        $input['on_item'] = $request->input('item_id');
+        
+        if (!$user = JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['msg' => 'User not found'], 404);
+        }
+
+        $input['from_user'] = $user->id;
+        $input['item_id'] = $request->input('item_id');
         $input['item_type'] = $request->input('item_type');
         $input['body'] = $request->input('body');
-        $slug = $request->input('slug');
 
-        Comment::create($input);
+        $comment = Comment::create($input);
 
-        return redirect($slug)->with('message', 'Comment published');
+        $response = [
+            'msg' => 'Comment saved',
+            'comment' => $comment
+        ];
+
+        return response()->json($response, 201);
     }
 
     /**

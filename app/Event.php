@@ -5,6 +5,13 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use JWTAuth;
 
+/**
+* The Event Class.
+
+* @author Xolisa Matika <xolisamatika@gmail.com>
+* 
+*
+*/
 class Event extends Model
 {
     /**
@@ -16,6 +23,10 @@ class Event extends Model
         'time', 'title', 'description', 'admin_id', 'venue', 'price'
     ];
 
+    /**
+    * User's relationship to event
+    *
+    */
     public function user()
     {
         return $this->belongsTo('App\User', 'admin_id');

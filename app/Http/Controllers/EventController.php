@@ -23,7 +23,7 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::all();
+        $events = Event::with(['comments', 'likes'])->get();
 
         foreach ($events as $event) {
             $event->view_event = [
@@ -44,7 +44,8 @@ class EventController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request the request object.
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -191,8 +192,8 @@ class EventController extends Controller
                             401
                         ]);
         }
-        $comments = $event->comments;
-        $event->comments()->detach();
+        $comments = $event->comments();
+        $comments->detach();
         if (!$event->delete()) {
             foreach ($comments as $comment) {
                 $event->comments()->attach($comment);
